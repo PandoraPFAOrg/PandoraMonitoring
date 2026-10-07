@@ -158,13 +158,25 @@ public:
      *  @brief  Add CaloHits to the Eve event-display
      *
      *  @param  pCaloHitList list of calohits to be added to the event display
-     *  @param  parent name of the calohitlist
+     *  @param  name name of the calohitlist
      *  @param  parent pointer to the parent TEveElement. If NULL, the cluster will be parent element
      *  @param  color The color the cluster elements are drawn with
      *
      *  @return pointer to created TEveElement
      */
     TEveElement *VisualizeCaloHits(const pandora::CaloHitList *const pCaloHitList, const std::string &name, TEveElement *parent, const Color color);
+
+    /**
+     *  @brief  Add optical hits to the Eve event-display
+     *
+     *  @param  pOpHitList list of optical hits
+     *  @param  name name of the optical hit list
+     *  @param  parent pointer to the parent TEveElement. If NULL, the cluster will be parent element
+     *  @param  scale optical response corresponding to the top of the colour scale; if non-negative, the largest response in the list is used
+     *  @param  colorScale linear or logarithmic response scaling
+     */
+    TEveElement *VisualizeOpHits(const pandora::CaloHitList *const pCaloHitList, const std::string &name, TEveElement *parent, const float scale,
+        const OpHitColorScale colorScale);
 
     /**
      *  @brief  Add Clusters to the Eve event-display

@@ -101,6 +101,12 @@ void PandoraMonitoringApi::VisualizeCaloHits(
     PandoraMonitoring::GetInstance(pandora)->VisualizeCaloHits(pCaloHitList, name, NULL, color);
 }
 
+void PandoraMonitoringApi::VisualizeOpHits(const pandora::Pandora &pandora, const pandora::CaloHitList *const pOpHitList, const std::string &name,
+    const float scale, const OpHitColorScale colorScale)
+{
+    PandoraMonitoring::GetInstance(pandora)->VisualizeOpHits(pOpHitList, name, NULL, scale, colorScale);
+}
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 void PandoraMonitoringApi::VisualizeClusters(const pandora::Pandora &pandora, const pandora::ClusterList *const pClusterList,

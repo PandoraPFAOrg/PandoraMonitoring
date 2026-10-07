@@ -76,6 +76,17 @@ enum Color
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
+ *  @brief  The optical hit color scale enum
+ */
+enum OpHitColorScale
+{
+    OPHIT_COLOR_SCALE_LINEAR,
+    OPHIT_COLOR_SCALE_LOGARITHMIC
+};
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
  *  @brief  PandoraMonitoringApi class
  */
 class PandoraMonitoringApi
@@ -202,6 +213,18 @@ public:
      */
     static void VisualizeCaloHits(
         const pandora::Pandora &pandora, const pandora::CaloHitList *const pCaloHitList, const std::string &name, const Color color);
+
+    /**
+     *  @brief Add optical hits to the Eve event-display
+     *
+     *  @param pandora the calling pandora instance
+     *  @param pOpHitList list of optical hits
+     *  @param name name of the optical hit list
+     *  @param scale optical response corresponding to the top of the colour scale; if non-positive, the largest response in the list is used
+     *  @param colorScale linear or logarithmic response scaling
+     */
+    static void VisualizeOpHits(const pandora::Pandora &pandora, const pandora::CaloHitList *const pCaloHitList, const std::string &name,
+        const float scale = -1.f, const OpHitColorScale colorScale = OPHIT_COLOR_SCALE_LOGARITHMIC);
 
     /**
      *  @brief  Add Clusters to the Eve event-display

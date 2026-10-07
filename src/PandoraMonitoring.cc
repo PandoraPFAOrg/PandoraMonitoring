@@ -747,6 +747,151 @@ TEveElement *PandoraMonitoring::VisualizeCaloHits(const CaloHitList *const pCalo
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
+TEveElement *PandoraMonitoring::VisualizeOpHits(const CaloHitList *const pOpHitList, const std::string &name, TEveElement *parent,
+    const float scale, const OpHitColorScale colorScale)
+{
+    // I think I need to sum up the op hits from the same detector here to avoid wash out
+    this->InitializeEve();
+
+    const std::string starter("---");
+    const std::string opHitListTitle(name.empty() ? "OpHits" : name);
+
+    std::string opHitListName(opHitListTitle);
+    if (opHitListName.find(starter) != std::string::npos)
+        opHitListName.replace(opHitListName.find(starter), starter.length(), "OpHits/");
+
+    std::replace(opHitListName.begin(), opHitListName.end(), '\n', '/');
+
+    TEveElement *pOpHitVectorElement = new TEveElementList();
+    pOpHitVectorElement->SetElementNameTitle(opHitListName.c_str(), opHitListTitle.c_str());
+
+    TEveBoxSet *hits = new TEveBoxSet(name.c_str());
+
+    hits->Reset(TEveBoxSet::kBT_FreeBox, kTRUE, 64);
+    hits->SetOwnIds(kTRUE);
+    hits->SetPickable(kTRUE);
+    hits->SetMainTransparency(5);
+    hits->SetAntiFlick(kTRUE);
+
+    pOpHitVectorElement->AddElement(hits);
+
+    struct CartesianPositionLess
+    {
+        bool operator()(const CartesianVector &lhs, const CartesianVector &rhs) const
+        {
+            if (lhs.GetZ() != rhs.GetZ())
+                return lhs.GetZ() < rhs.GetZ();
+
+            if (lhs.GetX() != rhs.GetX())
+                return lhs.GetX() < rhs.GetX();
+
+            return lhs.GetY() < rhs.GetY();
+        }
+    };
+
+    typedef std::map<pandora::CartesianVector, CaloHitList, CartesianPositionLess> PositionToCaloHitsMap;
+    PositionToCaloHitsMap positionToHitsMap;
+    for (const CaloHit *const pOpHit : *pOpHitList)
+    {
+        const CartesianVector position(pOpHit->GetPositionVector());
+        positionToHitsMap[position].emplace_back(pOpHit);
+    }
+
+    // Determine PE range
+    float totalPE = 0.f;
+    float maximumPE = 0.f;
+    float minimumPE = std::numeric_limits<float>::max();
+
+    for (const auto &[_, opHits] : positionToHitsMap)
+    {
+        float pe{0.f};
+        for (const CaloHit *const pOpHit : opHits)
+        {
+            const float detPE(pOpHit->GetInputEnergy());
+            pe += std::max(0.f, detPE);
+        }
+        totalPE += pe;
+        maximumPE = std::max(maximumPE, pe);
+        minimumPE = std::min(minimumPE, pe);
+    }
+
+    if (pOpHitList->empty())
+        minimumPE = 0.f;
+
+    const float effectiveScale((scale > 0.f) ? scale : maximumPE);
+
+    // Draw.
+    for (const auto &[_, opHits] : positionToHitsMap)
+    {
+        if (opHits.empty())
+            continue;
+        float pe{0.f};
+        for (const CaloHit *const pOpHit : opHits)
+        {
+            const float detPE(pOpHit->GetInputEnergy());
+            pe += std::max(0.f, detPE);
+        }
+
+        float fraction = 0.f;
+
+        if (effectiveScale > 0.f)
+        {
+            if (OPHIT_COLOR_SCALE_LOGARITHMIC == colorScale)
+                fraction = std::log1p(pe) / std::log1p(effectiveScale);
+            else
+                fraction = pe / effectiveScale;
+        }
+
+        fraction = std::clamp(fraction, 0.f, 1.f);
+
+        float corners[24];
+        this->MakeCaloHitCell(opHits.front(), corners);
+
+        hits->AddBox(corners);
+
+        const UChar_t r = 255;
+        const UChar_t g = static_cast<UChar_t>(237.f - fraction * 122.f);
+        const UChar_t b = static_cast<UChar_t>(209.f - fraction * 209.f);
+        const UChar_t a = static_cast<UChar_t>(100.f + fraction * 155.f);
+        hits->DigitColor(r, g, b, a);
+    }
+
+    // Optical hit description in the Eve tree.
+    std::stringstream sstr;
+    std::stringstream sstrName;
+
+    sstr << starter << "OpHits"
+         << "\nNHits=" << pOpHitList->size()
+         << "\nPE=" << totalPE
+         << "\nPE_min=" << minimumPE
+         << "\nPE_max=" << maximumPE;
+
+    sstrName << "OpHits/NHits=" << pOpHitList->size() << "/PE=" << totalPE;
+
+    hits->SetElementName(sstrName.str().c_str());
+    hits->SetElementTitle(sstr.str().c_str());
+
+    if (parent)
+    {
+        parent->AddElement(pOpHitVectorElement);
+    }
+    else
+    {
+        m_pEveManager->GetCurrentEvent()->AddElement(
+            pOpHitVectorElement);
+
+        m_pEveManager->Redraw3D();
+    }
+
+    m_p3DEventScene->AddElement(pOpHitVectorElement);
+
+    m_pEveManager->Redraw3D();
+
+    return pOpHitVectorElement;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
 TEveElement *PandoraMonitoring::VisualizeClusters(
     const ClusterList *const pClusterList, const std::string &name, TEveElement *parent, const Color color, bool showAssociatedTracks)
 {
