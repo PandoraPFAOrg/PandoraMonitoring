@@ -1,7 +1,7 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-find_dependency(PandoraSDK 4.0.0)
+find_dependency(PandoraSDK 5.02.00)
 find_dependency(ROOT 6.18.04 COMPONENTS Eve Geom RGL EG)
 
 include("${CMAKE_CURRENT_LIST_DIR}/PandoraMonitoringTargets.cmake")

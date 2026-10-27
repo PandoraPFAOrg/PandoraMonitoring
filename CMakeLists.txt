@@ -5,7 +5,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "PandoraMonitoring requires an out-of-source build.")
 endif()
 
-project(PandoraMonitoring VERSION 05.00.00 LANGUAGES CXX)
+project(PandoraMonitoring VERSION 05.02.00 LANGUAGES CXX)
 
 # Set a default installation prefix to a local 'install' directory inside the build folder.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -13,7 +13,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 if (NOT TARGET PandoraPFA::PandoraSDK)
-    find_package(PandoraSDK 05.00.00 REQUIRED)
+    find_package(PandoraSDK 05.02.00 REQUIRED)
 endif()
 find_package(ROOT 6.18.04 REQUIRED COMPONENTS Eve Geom RGL EG)
 
